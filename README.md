@@ -1,6 +1,7 @@
 
+Realisation of a web application for the functionality of the Dijkstra algorithm under consideration of didactic aspects
 Introduction
-This project is a web application that demonstrates the Dijkstra algorithm. It focuses on a didactic, playful presentation to make the algorithm understandable.
+This is a project as part of my bachelor thesis at the university, in which a web application was developed to demonstrate the Dijkstra algorithm. The focus is on the didactic, playful presentation in order to make the functionality of the algorithm understandable.
 Main Features
 Predefined Graphs: Choose from a variety of predefined graphs to test the algorithm.
 Random Graphs: Generate random graphs for diverse scenarios.
@@ -14,3 +15,9 @@ Select Graph: Choose a predefined or create a new graph.
 Interact: Connect nodes and start the algorithm.
 Results: View the shortest path calculation and display.
 Enjoy exploring the Dijkstra algorithm!
+LINKS
+Project Website
+Documentation
+GitHub Repository
+STATUS
+Status of the project can be found here
