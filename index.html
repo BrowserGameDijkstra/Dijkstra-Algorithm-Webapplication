@@ -1,9 +1,11 @@
 <!-- 
-    Datei: index_final_0409.html
+    Datei: index_final.html
     Beschreibung: Implementierung des Dijkstra-Algorithmus zur Findung des kürzesten Pfades 
     in einer Webapplikation
-    Erstellungsdatum: [20.09.2024 letzte Version]
+    Autor: Ramo Agic
+    Erstellungsdatum: [05.10.2024 letzte Version]
 -->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,31 +20,32 @@
             height: 100%;
             margin: 0;
             background-color: #f4f4f4;
-        }
-
-        #mainContainer {
             display: flex;
-            padding-top: 0px;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* Verhindert das Scrollen */
         }
 
         #canvasContainer {
-            position: relative;
+            position: absolute;
             display: flex;
             border: 1px solid #000000;
-            top: 20px;
-            margin-left: 400px;
+            justify-content: flex-start;
+            /* Stellt sicher, dass die Elemente oben beginnen */
+            align-items: flex-start;
+            width: fit-content;
+            height: fit-content;
+            cursor: grab;
+            top: 2%;
+            /* Position Viewport */
+            left: 2%;
+            /* Position Viewport */
         }
 
-        input[id="inputf"] {
-            position: relative;
-            font-size: 34px;
-            top: 8px;
-            margin-left: -1px;
-            align-self: start;
-            width: 958px;
-            text-align: center;
-            padding: 6px;
-            resize: none;
+        #canvasContainer.dragging {
+            cursor: grabbing;
+            /* Cursor während des Dragging */
         }
 
         #canvas1,
@@ -63,16 +66,27 @@
         }
 
         #distanceTable {
-            flex: 0 0 auto;
+            flex-basis: auto;
             margin-left: 2px;
             border: 1px solid #000000;
             cursor: pointer;
         }
 
+        input[id="inputf"] {
+            position: relative;
+            font-size: 38px;
+            top: 8px;
+            margin-left: -1px;
+            align-self: start;
+            width: 958px;
+            text-align: center;
+            padding: 6px;
+            resize: none;
+        }
+
         #A0 {
             font-size: 28px;
         }
-
 
         input[id^="Element"] {
             font-size: 28px;
@@ -139,6 +153,24 @@
 
         }
 
+        #saveOwnButton,
+        #loadGraphButton {
+            position: relative;
+            margin: 0 10px;
+            margin-top: 5px;
+            top: -20px;
+            /* Abstand zwischen den unteren Schaltflächen */
+            background-color: #A9A9A9;
+            font-size: 26px;
+            border: none;
+            color: white;
+            padding: 8px 13px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
         .bottom-buttons {
             display: flex;
             justify-content: center;
@@ -159,18 +191,6 @@
             text-decoration: none;
             border-radius: 8px;
             cursor: pointer;
-        }
-
-        input[id="inputf"] {
-            position: relative;
-            font-size: 34px;
-            top: 8px;
-            margin-left: -1px;
-            align-self: start;
-            width: 958px;
-            text-align: center;
-            padding: 6px;
-            resize: none;
         }
 
         td,
@@ -276,232 +296,239 @@
             color: white;
             border-bottom: none;
         }
+
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 
 </head>
 
 <body>
 
-    <div id="mainContainer">
-        <div id="canvasContainer">
-            <div>
-                <canvas id="canvas1" width="968" height="568"></canvas>
-                <canvas id="canvas2" width="968" height="468"></canvas>
+    <div id="canvasContainer">
+        <div>
+            <canvas id="canvas1" width="968" height="568"></canvas>
+            <canvas id="canvas2" width="968" height="468"></canvas>
 
-                <div id="tabs">
-                    <button class="tab" onclick="showTab('tab1');resetGraph() ">Vorgefertigte
-                        Graphen</button>
-                    <button class="tab" id="RndNodes" onclick="showTab('tab2')">Zufällige Graphen</button>
-                    <button class="tab" id="OwnNodesNew" onclick="showTab('tab3')">Gestalte eigene Graphen</button>
-                </div>
-
-                <div><input type="text" id="inputf" placeholder="Eingabefeld" autocomplete="off"></div>
-
-                <div id="tab1" class="tabContent">
-
-                    <label for="nodeCount"></label>
-                    <select id="nodeCount">
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
-                        <option value="13">13</option>
-                        <option value="14">14</option>
-                        <option value="15">15</option>
-                        <option value="16">16</option>
-                        <option value="17">17</option>
-                        <option value="18">18</option>
-                        <option value="19">19</option>
-                        <option value="20">20</option>
-
-                    </select>
-                    <button id="expectedStateButton" onclick="showExpectedState()">Hilf mir</button>
-                    <button id="resetButton" onclick="reloadPage()">Hauptmenü</button>
-                </div>
-
-                <div id="tab2" class="tabContent">
-                    <button id="expectedStateButton" onclick="showExpectedState()">Hilf mir</button>
-                    <button id="resetButton" onclick="reloadPage()">Hauptmenü</button>
-                    <button id="saveRndButton" onclick="saveGraph()">Speichern</button>
-                </div>
-                <div id="tab3" class="tabContent">
-                    <button id="connectNodesButton">Knoten verbinden</button>
-                    <button id="ownGraph">Spiel beginnen</button>
-                    <button id="expectedStateButton" onclick="showExpectedState()">Hilf mir</button>
-                    <button id="resetButton" onclick="reloadPage()">Hauptmenü</button>
-                    <div class="bottom-buttons">
-                        <button id="saveOwnButton" onclick="saveGraph()">Speichern</button>
-                        <button id="loadGraphButton">Laden</button>
-                    </div>
-                </div>
+            <div id="tabs">
+                <button class="tab" onclick="showTab('tab1');resetGraph() ">Vorgefertigte
+                    Graphen</button>
+                <button class="tab" id="RndNodes" onclick="showTab('tab2')">Zufällige Graphen</button>
+                <button class="tab" id="OwnNodesNew" onclick="showTab('tab3')">Gestalte eigene Graphen</button>
             </div>
 
-            <div>
-                <table id="distanceTable">
+            <div><input type="text" id="inputf" placeholder="Eingabefeld" autocomplete="off"></div>
 
-                    <tr>
-                        <th> Knoten <br>(Distanz)</th>
-                        <th>Priority Queue</th>
-                    </tr>
+            <div id="tab1" class="tabContent">
 
-                    <tr>
-                        <td id="A0"> A(0)</td>
-                        <td>
-                            <input type="text" id="priorityQueue1" placeholder="...">
-                        </td>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element1" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue2" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element2" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue3" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element3" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue4" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element4" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue5" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element5" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue6" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element6" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue7" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element7" placeholder="..."></td>
+                <label for="nodeCount"></label>
+                <select id="nodeCount">
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
 
-                        <td>
-                            <input type="text" id="priorityQueue8" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element8" placeholder="..."></td>
-
-                        <td>
-                            <input type="text" id="priorityQueue9" placeholder="...">
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td><input type="text" id="Element9" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue10" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element10" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue11" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element11" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue12" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element12" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue13" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element13" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue14" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element14" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue15" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element15" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue16" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element16" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue17" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element17" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue18" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element18" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue19" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element19" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue20" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element20" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue21" placeholder="...">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="text" id="Element21" placeholder="..."></td>
-                        <td>
-                            <input type="text" id="priorityQueue22" placeholder="...">
-                        </td>
-                    </tr>
-                </table>
-
+                </select>
+                <button id="expectedStateButton" onclick="showExpectedState()">Hilf mir</button>
+                <button id="resetButton" onclick="reloadPage()">Hauptmenü</button>
             </div>
+
+            <div id="tab2" class="tabContent">
+                <button id="expectedStateButton" onclick="showExpectedState()">Hilf mir</button>
+                <button id="resetButton" onclick="reloadPage()">Hauptmenü</button>
+                <button id="saveRndButton" onclick="saveGraph()">Speichern</button>
+            </div>
+            <div id="tab3" class="tabContent">
+                <button id="connectNodesButton">Knoten verbinden</button>
+                <button id="ownGraph">Spiel beginnen</button>
+                <button id="expectedStateButton" onclick="showExpectedState()">Hilf mir</button>
+                <button id="resetButton" onclick="reloadPage()">Hauptmenü</button>
+                <div class="bottom-buttons">
+                    <button id="saveOwnButton" onclick="saveGraph()">Speichern</button>
+                    <button id="loadGraphButton">Laden</button>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <table id="distanceTable">
+
+                <tr>
+                    <th> Knoten <br>(Distanz)</th>
+                    <th>Priority Queue</th>
+                </tr>
+
+                <tr>
+                    <td id="A0"> A(0)</td>
+                    <td>
+                        <input type="text" id="priorityQueue1" placeholder="...">
+                    </td>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element1" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue2" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element2" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue3" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element3" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue4" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element4" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue5" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element5" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue6" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element6" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue7" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element7" placeholder="..."></td>
+
+                    <td>
+                        <input type="text" id="priorityQueue8" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element8" placeholder="..."></td>
+
+                    <td>
+                        <input type="text" id="priorityQueue9" placeholder="...">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><input type="text" id="Element9" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue10" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element10" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue11" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element11" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue12" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element12" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue13" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element13" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue14" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element14" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue15" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element15" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue16" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element16" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue17" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element17" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue18" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element18" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue19" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element19" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue20" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element20" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue21" placeholder="...">
+                    </td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="Element21" placeholder="..."></td>
+                    <td>
+                        <input type="text" id="priorityQueue22" placeholder="...">
+                    </td>
+                </tr>
+            </table>
+
         </div>
     </div>
 
+
     <script>
-        /////////////////////////////////////////////////////////////////// Dijkstras Algorithmus Javascript Hauptprogramm
+        /*** Dijkstras Algorithmus Javascript Hauptprogramm */
 
-        /////////////////////////////////////// Variablen 
+        /** Variablen */
 
-        // zeichnen Graph
+        /* zeichnen Graph */
         const canvas = document.getElementById('canvas1');
         const ctx = canvas.getContext('2d');
 
-        // zeichnen Text
+        /* zeichnen Text */
         const canvas2 = document.getElementById('canvas2');
         const ctx2 = canvas2.getContext('2d');
 
-        // HSHL Startimage
+        /* UI */
+        const canvasContainer = document.getElementById('canvasContainer');
+
+        /* HSHL Startimage */
         window.onload = function () {
             var canvas = document.getElementById('canvas1');
             var ctx = canvas.getContext('2d');
@@ -510,11 +537,10 @@
             img.onload = function () {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             }
-            //  Base64-String HSHL Logo
+            /* Base64-String HSHL Logo */
             img.src = 'data:image/jpeg;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAgMB/9oACAECEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANgADFAABYAAAAAAAAAAAAAAAAANgADFAABYAAAAAAAAAAAAAAAAANgADFAABYAAAAAAAAAAAAAAAAANgADFAABYAAAAAAAAAAAAAAAAANgADFAABYAAAAAAAAAAAAAAAAANgADFAABYAAAAAAAAAAAAAAAAANgE8BDgOcAWAAAAAAAAAAAAAAAAADYBEAAOSAsAAAAAAAAAAAAAAAAAGwCIAAckBYAAAAAAAAAAAAAAAAANgEQAA5ICwAAAAAAAAAAAAAAAAAbAAGKAACwAAAAAAAAAAAAAAAAAbAAGKAACwAAAAAAAAAAAAAAAAAbAAGKAACwAAAAAAAAAAAAAAAAAbAAGKAACwAAAAAAAAAAAAAAAAAbAAGKAACwAAAAAAAAAAAAAAAAAbAAGKAACwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//EABgBAQEBAQEAAAAAAAAAAAAAAAADBAIB/9oACAEDEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIgAFmsAAyAAAAAAAAAAAAAAAAAAiAAWawADIAAAAAAAAAAAAAAAAACIABZrAAMgAAAAAAAAAAAAAAAAAIgAFmsA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';
         }
 
-        // 7 bis 18 Knoten per Select wählbar > vordefiniert
         const graphConfigurations = {
 
             7: {
@@ -610,16 +636,16 @@
             },
             10: {
                 nodes: {
-                    A: { x: 380, y: 310 },
-                    B: { x: 330, y: 170 },
-                    C: { x: 530, y: 170 },
-                    D: { x: 555, y: 310 },
-                    E: { x: 330, y: 450 },
-                    F: { x: 530, y: 450 },
-                    G: { x: 655, y: 170 },
-                    H: { x: 220, y: 310 },
-                    I: { x: 655, y: 450 },
-                    J: { x: 760, y: 310 }
+                    A: { x: 380, y: 280 },
+                    B: { x: 330, y: 140 },
+                    C: { x: 530, y: 140 },
+                    D: { x: 555, y: 280 },
+                    E: { x: 330, y: 420 },
+                    F: { x: 530, y: 420 },
+                    G: { x: 655, y: 140 },
+                    H: { x: 220, y: 280 },
+                    I: { x: 655, y: 420 },
+                    J: { x: 760, y: 280 }
                 },
                 edges: [
                     { from: 'A', to: 'B' }, { from: 'B', to: 'A' },
@@ -647,35 +673,40 @@
 
             11: {
                 nodes: {
-                    A: { x: 150, y: 100 },
-                    B: { x: 300, y: 50 },
-                    C: { x: 450, y: 100 },
-                    D: { x: 600, y: 150 },
-                    E: { x: 750, y: 100 },
-                    F: { x: 900, y: 150 },
-                    G: { x: 400, y: 300 },
-                    H: { x: 700, y: 300 },
-                    I: { x: 600, y: 450 },
-                    J: { x: 300, y: 450 },
-                    K: { x: 900, y: 450 }
+                    A: { x: 417, y: 423 },
+                    B: { x: 254, y: 302 },
+                    C: { x: 558, y: 308 },
+                    D: { x: 414, y: 167 },
+                    E: { x: 674, y: 174 },
+                    F: { x: 878, y: 175 },
+                    G: { x: 769, y: 322 },
+                    H: { x: 644, y: 441 },
+                    I: { x: 167, y: 433 },
+                    J: { x: 62, y: 294 },
+                    K: { x: 162, y: 177 }
                 },
                 edges: [
                     { from: 'A', to: 'B' }, { from: 'B', to: 'A' },
-                    { from: 'A', to: 'J' }, { from: 'J', to: 'A' },
+                    { from: 'A', to: 'C' }, { from: 'C', to: 'A' },
+                    { from: 'A', to: 'I' }, { from: 'I', to: 'A' },
                     { from: 'B', to: 'C' }, { from: 'C', to: 'B' },
+                    { from: 'B', to: 'D' }, { from: 'D', to: 'B' },
+                    { from: 'B', to: 'I' }, { from: 'I', to: 'B' },
+                    { from: 'B', to: 'K' }, { from: 'K', to: 'B' },
+                    { from: 'B', to: 'J' }, { from: 'J', to: 'B' },
                     { from: 'C', to: 'D' }, { from: 'D', to: 'C' },
+                    { from: 'C', to: 'E' }, { from: 'E', to: 'C' },
+                    { from: 'C', to: 'H' }, { from: 'H', to: 'C' },
                     { from: 'D', to: 'E' }, { from: 'E', to: 'D' },
                     { from: 'E', to: 'F' }, { from: 'F', to: 'E' },
-                    { from: 'G', to: 'H' }, { from: 'H', to: 'G' },
-                    { from: 'G', to: 'D' }, { from: 'D', to: 'G' },
-                    { from: 'G', to: 'C' }, { from: 'C', to: 'G' },
-                    { from: 'H', to: 'I' }, { from: 'I', to: 'H' },
-                    { from: 'H', to: 'D' }, { from: 'D', to: 'H' },
+                    { from: 'E', to: 'G' }, { from: 'G', to: 'E' },
+                    { from: 'E', to: 'H' }, { from: 'H', to: 'E' },
+                    { from: 'H', to: 'G' }, { from: 'G', to: 'H' },
+                    { from: 'F', to: 'G' }, { from: 'G', to: 'F' },
                     { from: 'I', to: 'J' }, { from: 'J', to: 'I' },
-                    { from: 'K', to: 'I' }, { from: 'I', to: 'K' },
-                    { from: 'K', to: 'F' }, { from: 'F', to: 'K' },
-                    { from: 'H', to: 'J' }, { from: 'J', to: 'H' },
-                    { from: 'K', to: 'E' }, { from: 'E', to: 'K' }
+                    { from: 'K', to: 'D' }, { from: 'D', to: 'K' },
+                    { from: 'K', to: 'J' }, { from: 'J', to: 'K' }
+
                 ]
             },
             12: {
@@ -719,43 +750,44 @@
             },
             13: {
                 nodes: {
-                    A: { x: 484, y: 50 },
-                    B: { x: 100, y: 100 },
-                    C: { x: 868, y: 100 },
-                    D: { x: 200, y: 250 },
-                    E: { x: 768, y: 250 },
-                    F: { x: 100, y: 468 },
-                    G: { x: 868, y: 468 },
-                    H: { x: 334, y: 180 },
-                    I: { x: 594, y: 180 },
-                    J: { x: 334, y: 388 },
-                    K: { x: 634, y: 388 },
-                    L: { x: 450, y: 320 },
-                    M: { x: 484, y: 518 }
+                    A: { x: 230, y: 470 },
+                    B: { x: 225, y: 320 },
+                    C: { x: 118, y: 225 },
+                    D: { x: 345, y: 241 },
+                    E: { x: 347, y: 115 },
+                    F: { x: 192, y: 72 },
+                    G: { x: 497, y: 73 },
+                    H: { x: 592, y: 143 },
+                    I: { x: 601, y: 251 },
+                    J: { x: 470, y: 310 },
+                    K: { x: 460, y: 468 },
+                    L: { x: 745, y: 254 },
+                    M: { x: 763, y: 59 }
                 },
                 edges: [
-                    { from: 'L', to: 'B' }, { from: 'B', to: 'L' },
-                    { from: 'L', to: 'C' }, { from: 'C', to: 'L' },
-                    { from: 'L', to: 'D' }, { from: 'D', to: 'L' },
-                    { from: 'L', to: 'E' }, { from: 'E', to: 'L' },
-                    { from: 'L', to: 'H' }, { from: 'H', to: 'L' },
-                    { from: 'L', to: 'I' }, { from: 'I', to: 'L' },
-                    { from: 'L', to: 'J' }, { from: 'J', to: 'L' },
-                    { from: 'L', to: 'K' }, { from: 'K', to: 'L' },
+                    { from: 'A', to: 'B' }, { from: 'B', to: 'A' },
+                    { from: 'A', to: 'J' }, { from: 'J', to: 'A' },
+                    { from: 'B', to: 'C' }, { from: 'C', to: 'B' },
                     { from: 'B', to: 'D' }, { from: 'D', to: 'B' },
-                    { from: 'C', to: 'E' }, { from: 'E', to: 'C' },
+                    { from: 'B', to: 'F' }, { from: 'F', to: 'B' },
+                    { from: 'C', to: 'F' }, { from: 'F', to: 'C' },
+                    { from: 'D', to: 'E' }, { from: 'E', to: 'D' },
+                    { from: 'D', to: 'G' }, { from: 'G', to: 'D' },
                     { from: 'D', to: 'F' }, { from: 'F', to: 'D' },
                     { from: 'E', to: 'G' }, { from: 'G', to: 'E' },
-                    { from: 'F', to: 'J' }, { from: 'J', to: 'F' },
-                    { from: 'G', to: 'K' }, { from: 'K', to: 'G' },
-                    { from: 'H', to: 'I' }, { from: 'I', to: 'H' },
-                    { from: 'J', to: 'K' }, { from: 'K', to: 'J' },
-                    { from: 'A', to: 'H' }, { from: 'H', to: 'A' },
-                    { from: 'A', to: 'I' }, { from: 'I', to: 'A' },
+                    { from: 'H', to: 'M' }, { from: 'M', to: 'H' },
+                    { from: 'D', to: 'H' }, { from: 'H', to: 'D' },
                     { from: 'D', to: 'J' }, { from: 'J', to: 'D' },
-                    { from: 'M', to: 'K' }, { from: 'K', to: 'M' },
-                    { from: 'M', to: 'G' }, { from: 'G', to: 'M' },
-                    { from: 'M', to: 'F' }, { from: 'F', to: 'M' }
+                    { from: 'E', to: 'F' }, { from: 'F', to: 'E' },
+                    { from: 'G', to: 'H' }, { from: 'H', to: 'G' },
+                    { from: 'G', to: 'M' }, { from: 'M', to: 'G' },
+                    { from: 'H', to: 'I' }, { from: 'I', to: 'H' },
+                    { from: 'I', to: 'J' }, { from: 'J', to: 'I' },
+                    { from: 'I', to: 'L' }, { from: 'L', to: 'I' },
+                    { from: 'I', to: 'M' }, { from: 'M', to: 'I' },
+                    { from: 'L', to: 'M' }, { from: 'M', to: 'L' },
+                    { from: 'J', to: 'K' }, { from: 'K', to: 'J' },
+                    { from: 'K', to: 'L' }, { from: 'L', to: 'K' }
                 ]
             },
 
@@ -1033,72 +1065,54 @@
             },
             19: {
                 nodes: {
-                    A: { x: 51, y: 355 },
-                    B: { x: 201, y: 213 },
-                    C: { x: 201, y: 355 },
-                    D: { x: 201, y: 515 },
-                    E: { x: 343, y: 142 },
-                    F: { x: 343, y: 284 },
-                    G: { x: 343, y: 426 },
-                    H: { x: 485, y: 71 },
-                    I: { x: 485, y: 213 },
-                    J: { x: 485, y: 355 },
-                    K: { x: 485, y: 515 },
-                    L: { x: 627, y: 142 },
-                    M: { x: 627, y: 284 },
-                    N: { x: 627, y: 426 },
-                    O: { x: 769, y: 71 },
-                    P: { x: 769, y: 283 },
-                    Q: { x: 809, y: 515 },
-                    R: { x: 909, y: 283 },
-                    S: { x: 181, y: 83 }
+                    A: { x: 422, y: 291 },
+                    B: { x: 303, y: 198 },
+                    C: { x: 180, y: 97 },
+                    D: { x: 543, y: 217 },
+                    E: { x: 663, y: 118 },
+                    F: { x: 654, y: 321 },
+                    G: { x: 532, y: 414 },
+                    H: { x: 649, y: 488 },
+                    I: { x: 399, y: 492 },
+                    J: { x: 274, y: 395 },
+                    K: { x: 156, y: 457 },
+                    L: { x: 170, y: 302 },
+                    M: { x: 425, y: 100 },
+                    N: { x: 753, y: 219 },
+                    O: { x: 738, y: 412 },
+                    P: { x: 92, y: 192 },
+                    Q: { x: 860, y: 316 },
+                    R: { x: 799, y: 86 },
+                    S: { x: 844, y: 473 }
                 },
                 edges: [
                     { from: 'A', to: 'B' }, { from: 'B', to: 'A' },
-                    { from: 'A', to: 'C' }, { from: 'C', to: 'A' },
                     { from: 'A', to: 'D' }, { from: 'D', to: 'A' },
+                    { from: 'A', to: 'G' }, { from: 'G', to: 'A' },
+                    { from: 'A', to: 'J' }, { from: 'J', to: 'A' },
                     { from: 'B', to: 'C' }, { from: 'C', to: 'B' },
-                    { from: 'B', to: 'E' }, { from: 'E', to: 'B' },
-                    { from: 'B', to: 'F' }, { from: 'F', to: 'B' },
-                    { from: 'C', to: 'F' }, { from: 'F', to: 'C' },
-                    { from: 'C', to: 'D' }, { from: 'D', to: 'C' },
-                    { from: 'D', to: 'G' }, { from: 'G', to: 'D' },
-                    { from: 'D', to: 'K' }, { from: 'K', to: 'D' },
+                    { from: 'B', to: 'L' }, { from: 'L', to: 'B' },
+                    { from: 'B', to: 'M' }, { from: 'M', to: 'B' },
+                    { from: 'C', to: 'P' }, { from: 'P', to: 'C' },
+                    { from: 'D', to: 'E' }, { from: 'E', to: 'D' },
                     { from: 'D', to: 'F' }, { from: 'F', to: 'D' },
-                    { from: 'E', to: 'F' }, { from: 'F', to: 'E' },
-                    { from: 'E', to: 'H' }, { from: 'H', to: 'E' },
-                    { from: 'E', to: 'I' }, { from: 'I', to: 'E' },
-                    { from: 'F', to: 'I' }, { from: 'I', to: 'F' },
-                    { from: 'E', to: 'H' }, { from: 'H', to: 'E' },
+                    { from: 'D', to: 'M' }, { from: 'M', to: 'D' },
+                    { from: 'E', to: 'N' }, { from: 'N', to: 'E' },
                     { from: 'F', to: 'G' }, { from: 'G', to: 'F' },
-                    { from: 'F', to: 'J' }, { from: 'J', to: 'F' },
-                    { from: 'G', to: 'K' }, { from: 'K', to: 'G' },
-                    { from: 'H', to: 'L' }, { from: 'L', to: 'H' },
-                    { from: 'I', to: 'L' }, { from: 'L', to: 'I' },
-                    { from: 'I', to: 'M' }, { from: 'M', to: 'I' },
-                    { from: 'J', to: 'M' }, { from: 'M', to: 'J' },
-                    { from: 'G', to: 'J' }, { from: 'J', to: 'G' },
-                    { from: 'J', to: 'N' }, { from: 'N', to: 'J' },
-                    { from: 'H', to: 'I' }, { from: 'I', to: 'H' },
+                    { from: 'G', to: 'H' }, { from: 'H', to: 'G' },
+                    { from: 'H', to: 'O' }, { from: 'O', to: 'H' },
+                    { from: 'H', to: 'S' }, { from: 'S', to: 'H' },
                     { from: 'I', to: 'J' }, { from: 'J', to: 'I' },
                     { from: 'J', to: 'K' }, { from: 'K', to: 'J' },
-                    { from: 'M', to: 'P' }, { from: 'P', to: 'M' },
-                    { from: 'K', to: 'N' }, { from: 'N', to: 'K' },
-                    { from: 'K', to: 'Q' }, { from: 'Q', to: 'K' },
-                    { from: 'L', to: 'M' }, { from: 'M', to: 'L' },
-                    { from: 'M', to: 'N' }, { from: 'N', to: 'M' },
+                    { from: 'K', to: 'L' }, { from: 'L', to: 'K' },
+                    { from: 'J', to: 'L' }, { from: 'L', to: 'J' },
                     { from: 'L', to: 'P' }, { from: 'P', to: 'L' },
-                    { from: 'L', to: 'O' }, { from: 'O', to: 'L' },
+                    { from: 'N', to: 'O' }, { from: 'O', to: 'N' },
                     { from: 'N', to: 'Q' }, { from: 'Q', to: 'N' },
-                    { from: 'O', to: 'P' }, { from: 'P', to: 'O' },
-                    { from: 'P', to: 'Q' }, { from: 'Q', to: 'P' },
-                    { from: 'O', to: 'H' }, { from: 'H', to: 'O' },
-                    { from: 'Q', to: 'M' }, { from: 'M', to: 'Q' },
-                    { from: 'P', to: 'R' }, { from: 'R', to: 'P' },
-                    { from: 'R', to: 'Q' }, { from: 'Q', to: 'R' },
-                    { from: 'R', to: 'O' }, { from: 'O', to: 'R' },
-                    { from: 'S', to: 'B' }, { from: 'B', to: 'S' },
-                    { from: 'S', to: 'E' }, { from: 'E', to: 'S' }
+                    { from: 'N', to: 'R' }, { from: 'R', to: 'N' },
+                    { from: 'O', to: 'Q' }, { from: 'Q', to: 'O' },
+                    { from: 'O', to: 'S' }, { from: 'S', to: 'O' },
+                    { from: 'Q', to: 'R' }, { from: 'R', to: 'Q' }
                 ]
             },
             20: {
@@ -1176,44 +1190,48 @@
             }
 
         };
-
-        // Index für Pfad der kürzesten Knoten zeichnen 
+        /* Index für Pfad der kürzesten Knoten zeichnen */
         let currentPathIndex = 1;
 
-        // Index um Fortschritt der Benutzereingabe zu verfolgen
+        /* Index um Fortschritt der Benutzereingabe zu verfolgen */
         let currentIndex = 0;
 
-        // Anzahl der Verwendungen des "Hilf mir"-Buttons
+        /* Anzahl der Verwendungen des "Hilf mir"-Buttons */
         let showExpectedStateCount = 0;
 
-        // Nachbarknoten drawneighbours
+        /* Nachbarknoten drawneighbours */
         let nearNodes = [];
 
-        // Array der NK der Adjl. graph 
+        /* Array der NK der Adjl. graph */
         let neighborNodes = [];
 
-        // Array der NK der Adjl. graph für zufällige Graphen
-        // let currentNode = path[path.length - 1];
-
-        // Boolescher Wert, /De)Aktiviert event.Listener zum erstellen eigener/zufälliger Knoten
+        /* Boolescher Wert, /De)Aktiviert event.Listener zum erstellen eigener/zufälliger Knoten */
         isRndNodesActive = false;
         isOwnNodesNewActive = false;
 
-        // validateInput deaktiviert nach Glückw. Message
+        /* validateInput deaktiviert nach Glückw. Message */
         let algorithmCompleted = false;
 
-        // Variable ob Hilfe bereits benutzt wurde
+        /* Hilfe nur einmal anzeigen */
         let lastExpectedState = null;
-        // Willkommenstext und StartAnweisungen
-        const textStart = "Unten siehst du verschiedene Tabs mit den jeweiligen Spielformen.\n\nDIE REGELN:\n\n- Startknoten ist immer A, von diesem werden die kürzesten Strecken zu\n  allen anderen Knoten bestimmt, indem du die Priority Queue der jeweils\n  nächsten Knoten zu A in das Eingabefeld unten eingibst.\n\n- Die Eingabe muss im Format B11,c12,g4 ... erfolgen, Groß- und Klein-\n  schreibung und auch Reihenfolge der Eingabe sind egal und werden\n  automatisch erkannt, ebenso Leerzeichen.\n\n- Starte nun mit click auf einen der Tabs ... Viel Spaß! :-)";
 
-        //////////////////////////////////////////////////////////////////////////////////// Event listener + FUnktionen
+        /* Flagge für Laden Fkt das nur 1 mal initialisieren da Aufruf bei jedem Event Eig. Graphen */
+        let isLoadGraphInitialized = false;
 
-        //  Array für Screenshots
+        /* Willkommenstext und StartAnweisungen */
+        const textStart = "Unten siehst du verschiedene Tabs mit den jeweiligen Spielformen.\nDIE REGELN:\n- Startknoten ist immer A, von diesem werden die kürzesten Strecken zu\n  allen anderen Knoten bestimmt, indem du die Priority Queue der jeweils\n  nächsten Knoten zu A in das Eingabefeld unten eingibst.\n\n- Die Eingabe muss im Format B11,c12,g4 ... erfolgen, Groß- und Klein-\n  schreibung und auch Reihenfolge der Eingabe sind egal und werden\n  automatisch erkannt, ebenso Leerzeichen.\n\n- Mit der mittleren MT kannst du das Spiel im Browser verschieben! \n\n- Starte das Spiel mit klick auf einen der Tabs. Viel Spass! :-)";
+
+        /* Event listener + FUnktionen */
+
+        /* Array für Screenshots */
         let screenshots = [];
         let currentScreenshotIndex = 0;
 
-        // Stoppuhr
+        /* UI bewegen*/
+        let isDragging = false;
+        let offsetX = 0, offsetY = 0;
+
+        /* Stoppuhr */
         let startTime;
 
         function startTimer() {
@@ -1226,15 +1244,13 @@
             return elapsedTime;
         }
 
-        // Starte den Timer, wenn ein Button/Tab gedrückt wird
-        // document.getElementById('newGraphButton').addEventListener('click', startTimer);
+        /* Starte den Timer, wenn ein Button/Tab gedrückt wird */
         document.querySelector('.tab').addEventListener('click', startTimer);
         document.getElementById('ownGraph').addEventListener('click', startTimer);
         document.getElementById('tab1').addEventListener('click', startTimer);
         document.getElementById('RndNodes').addEventListener('click', startTimer);
 
-
-        // Starte den Timer, wenn nodeCount geändert wird
+        /* Starte den Timer, wenn nodeCount geändert wird */
         document.getElementById('nodeCount').addEventListener('change', startTimer);
 
         function formatTime(seconds) {
@@ -1255,12 +1271,12 @@
                 edges: Object.keys(weights).map(key => ({
                     nodes: key.split('-'),
                     weight: weights[key]
-                }))
+
+                })),
             };
 
             const graphName = prompt("Bitte gib einen Namen für die Datei ein:");
             if (graphName) {
-                // blob Methode um JSON Datei aus graphData zu erstellen
                 const json = JSON.stringify(graphData);
                 const blob = new Blob([json], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1272,7 +1288,7 @@
             }
         }
 
-        ///////////////////// Dijkstra Algorithmus
+        /*** Dijkstra Algorithmus  */
 
         class PriorityQueue {
             constructor() {
@@ -1423,19 +1439,9 @@
                 shortestPathDraw.push(path);
             }
 
-            console.log('selectednodeCount', selectedNodeCount);
-            console.table(
-                '%c' + Object.entries(pqStates)
-                    .map(([node, states]) =>
-                        `${node} ${distances[node]} ${states.map(state => state.node + state.distance).join(',')}`
-                    )
-                    .join('\n'),
-                'font-size: 16px; font-weight: bold;'
-            );
-
         }
 
-        ///////////////////////////////////////////////////////////////////////  Graph / UI / Canvas / Zeichenfunktionen
+        /*** Graph / UI / Canvas / Zeichenfunktionen */
 
         function showTab(tabName) {
             var i, tabcontent;
@@ -1446,12 +1452,9 @@
             document.getElementById(tabName).style.display = "block";
         }
 
-
-        // node = Zeichenobjekt mit x,y Koordinaten, color, label, visited
         function drawNode(node, color, label) {
             let position = nodes[node];
             if (!position) return;
-
             ctx.beginPath();
             ctx.arc(position.x, position.y, 32, 0, 2 * Math.PI, false);
             ctx.fillStyle = color;
@@ -1477,7 +1480,7 @@
             const unitDirectionX = directionX / distance;
             const unitDirectionY = directionY / distance;
 
-            //Positionen der Knotenränder verbundener Knoten
+            /** Knotenränder verbundener Knoten */
             const radius = 32;
             const borderPosition1 = {
                 x: position1.x + unitDirectionX * radius,
@@ -1488,7 +1491,6 @@
                 y: position2.y - unitDirectionY * radius
             };
 
-            //Methode Verbindungen definieren und zeichnen (stroke)
             ctx.beginPath();
             ctx.moveTo(borderPosition1.x, borderPosition1.y);
             ctx.lineTo(borderPosition2.x, borderPosition2.y);
@@ -1496,13 +1498,13 @@
             ctx.lineWidth = thickness;
             ctx.stroke();
         }
-
+        /** Zeichnet das Gewicht einer Kante zwischen zwei Knoten */
         function drawWeight(node1, node2, weight) {
             const { x: x1, y: y1 } = nodes[node1];
             const { x: x2, y: y2 } = nodes[node2];
             const midX = ({ x: x1, y: y1 }.x + { x: x2, y: y2 }.x) / 2;
             const midY = ({ x: x1, y: y1 }.y + { x: x2, y: y2 }.y) / 2;
-            // Berechne die Orientierung der Kante
+            /** Berechne die Orientierung der Kante */
             const horizontal = Math.abs(x1 - x2) > Math.abs(y1 - y2);
 
             ctx.fillStyle = 'black';
@@ -1511,22 +1513,22 @@
             ctx.textBaseline = 'middle';
 
             if (horizontal) {
-                // Für eher horizontale Kanten, leicht über der Kante zeichnen
+                /** Für eher horizontale Kanten, leicht über der Kante zeichnen */
                 ctx.fillText(weight, midX, midY - 14);
             } else {
-                // Für eher vertikale Kanten, links von der Kante zeichnen
+                /** Für eher vertikale Kanten, links von der Kante zeichnen */
                 ctx.fillText(weight, midX - 14, midY);
             }
         }
-
+        /** Fkt modifiziert um Dopllungen und Konsistenz  */
         function drawGraph(selectedNodeCount) {
-            let drawnEdges = {};        // Speichert bereits gezeichnete Kanten wichtig um dopplungen zu vermeiden
+            let drawnEdges = {};
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             edges.forEach(edge => {
                 if (edge.from.charCodeAt(0) - 65 < selectedNodeCount && edge.to.charCodeAt(0) - 65 < selectedNodeCount) {
-                    let sortedEdge = [edge.from, edge.to].sort().join('-');         // Sortiere die Kanten, um Konsistenz zu gewährleisten
-                    if (!drawnEdges[sortedEdge]) {          // Schleife Bedingung 
+                    let sortedEdge = [edge.from, edge.to].sort().join('-');
+                    if (!drawnEdges[sortedEdge]) {
                         drawConnection(edge.from, edge.to, '#8a8a8a', 1);
                         drawWeight(edge.from, edge.to, edge.weight);
                         drawnEdges[sortedEdge] = true;
@@ -1534,7 +1536,7 @@
                 }
             });
 
-            // zeichnet nodes von ASCII 65 (A) an bis selectenodecount
+            /** Zeichnet Knoten von ASCII 65 (A) an bis selectedNodeCount */
             Object.keys(nodes).forEach(node => {
                 if (node.charCodeAt(0) - 65 < selectedNodeCount) {
                     drawNode(node, 'white', node);
@@ -1542,9 +1544,7 @@
             });
         }
 
-
-
-        // führt nodes+edges in ein gemeinsames globales (zugriff .js selbe Ordner) array zusammen
+        /** Führt Knoten und Kanten in ein gemeinsames globales Array zusammen */
         function createGraph() {
             const selectedNodeCount = parseInt(document.getElementById('nodeCount').value, 10);
             graph = {};
@@ -1562,7 +1562,6 @@
                     }
                 }
             }
-
         }
 
         function updateGraph() {
@@ -1573,7 +1572,8 @@
             edges = selectedConfiguration.edges;
 
             const weights = {};
-            //Zuweisung gleiche key und gleiche Werte Kanten zwischen 2 nodes
+
+            /** Zuweisung gleiche key und gleiche Werte Kanten zwischen 2 nodes */
             edges.forEach(edge => {
                 let key = [edge.from, edge.to].sort().join('-');
                 if (!weights[key]) {
@@ -1590,7 +1590,7 @@
             drawNeighbors('A');
         }
 
-        // Ausgabe benötigte Zeit
+        /** Ausgabe benötigte Zeit */
         function drawMessage(message, color, fontSize = 28) {
             ctx2.clearRect(0, 0, canvas.width, canvas.height);
             if (message === 'Glückwunsch! Dies war der letzte Knoten in der Priority Queue und du hast\nalle kürzesten Distanzen bestimmt!\n\nDijkstras Algorithmus wurde erfolgreich gelöst! :-)') {
@@ -1612,9 +1612,10 @@
             });
         }
 
-        /* NK Vorgefertigter Graph */
+        /** NK Vorgefertigter Graph */
         function drawNeighbors(node) {
-            // Initialisierung der NK zu A
+
+            /** Initialisierung der NK zu A */
             if (node === 'A') {
                 for (let nearNode of nearNodes) {
                     const label = graph[nearNode].label ? graph[nearNode].label : nearNode;
@@ -1622,7 +1623,7 @@
                 }
             }
 
-            //zeichnet alte NK wieder weiß
+            /** zeichnet alte NK wieder weiß */
             for (let nearNode of nearNodes) {
                 const label = graph[nearNode].label ? graph[nearNode].label : nearNode;
                 drawNode(nearNode, 'white', label);
@@ -1631,7 +1632,7 @@
             nearNodes = [];
             let neighborNodes = Object.keys(graph[node]);
 
-            // Schleife zum zeichnen der NK
+            /** Schleife zum zeichnen der NK */
             for (let neighbor of neighborNodes) {
                 const label = graph[neighbor].label ? graph[neighbor].label : neighbor;
                 drawNode(neighbor, 'lightgray', label);
@@ -1639,18 +1640,23 @@
             }
         }
 
-        /* NK Zufälliger Graph */
+        /** NK Zufälliger Graph */
         function drawRndNode(position, color, label) {
             ctx.beginPath();
             ctx.strokeStyle = 'black';
-            ctx.arc(position.x, position.y, 28, 0, 2 * Math.PI, false);
-            ctx.fillStyle = label === 'node' ? 'lightgrey' : color;
+            ctx.arc(position.x, position.y, 30, 0, 2 * Math.PI, false);
+
+            if (label === 'A') {
+                ctx.fillStyle = 'lightgreen';
+            } else {
+                ctx.fillStyle = label === 'node' ? 'lightgrey' : color;
+            }
+
             ctx.fill();
             ctx.lineWidth = 1;
             ctx.stroke();
-
             ctx.fillStyle = 'black';
-            ctx.font = '24px Arial';
+            ctx.font = '26px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(label === 'A' ? 'A(0)' : label, position.x, position.y);
@@ -1658,18 +1664,19 @@
 
 
         function drawRndNeighbors(currentNode, isStartNode = false) {
-            // A immer gruen und Startknoten
+
+            /** A immer gruen und Startknoten */
             if (currentNode.node === 'A') {
                 let startNode = nodes.find(n => n.label === 'A');
                 if (startNode) {
                     drawRndNode({ x: startNode.x, y: startNode.y }, 'lightgreen', 'A');
                 }
             } else {
-                // Zeichne den aktuellen Knoten weiß
+                /** Zeichne den aktuellen Knoten weiß */
                 drawRndNode({ x: currentNode.x, y: currentNode.y }, 'white', currentNode.node);
             }
 
-            // Reset vorherige NK
+            /** Reset vorherige NK */
             for (let nearNode of nearNodes) {
                 let node = nodes.find(n => n.label === nearNode);
                 if (node) {
@@ -1679,12 +1686,12 @@
 
             nearNodes = [];
 
-            //  NK aus graph des aktuellen Knotens und filtert alle K die nur undef. NK haben
+            /** NK aus graph des aktuellen Knotens und filtert alle K die nur undef. NK haben */
             let neighborNodes = Object.entries(graph[currentNode.node])
                 .filter(([node, value]) => value !== undefined)
                 .map(([node, value]) => node);
 
-            // Schelife zum zeichnen der NK
+            /** Schelife zum zeichnen der NK */
             for (let neighbor of neighborNodes) {
                 let node = nodes.find(n => n.label === neighbor);
                 if (node) {
@@ -1698,7 +1705,7 @@
             }
         }
 
-        /* NK Eigener Graph */
+        /** NK Eigener Graph */
         function drawOwnNeighNode(x, y, label, color) {
             ctx.strokeStyle = 'black';
             ctx.beginPath();
@@ -1718,7 +1725,7 @@
             const radius = 30;
             const nodeLabel = currentNode.node;
 
-            // Initialisierung der NK zu A
+            /** Initialisierung der NK zu A */
             if (nodeLabel === 'A') {
                 for (let nearNode of nearNodes) {
                     let node = nodes.find(n => n.label === nearNode);
@@ -1728,7 +1735,7 @@
                 }
             }
 
-            //zeichnet alte NK wieder weiß
+            /** zeichnet alte NK wieder weiß */
             for (let nearNode of nearNodes) {
                 let node = nodes.find(n => n.label === nearNode);
                 if (node) {
@@ -1738,27 +1745,26 @@
 
             nearNodes = [];
             let neighborNodes = graph[nodeLabel];
-
-            // Schleife zum zeichnen der NK
+            /** Schleife zum zeichnen der NK */
             for (let neighbor in neighborNodes) {
                 let node = nodes.find(n => n.label === neighbor);
                 if (node) {
                     drawOwnNeighNode(node.x, node.y, neighbor, 'lightgray');
                     nearNodes.push(neighbor);
 
-                    // Zeichne die Verbindungslinie zwischen dem aktuellen Knoten und dem Nachbarknoten
+                    /** Zeichne die Verbindungslinie zwischen dem aktuellen Knoten und dem Nachbarknoten */
                     let currentNodeObj = nodes.find(n => n.label === nodeLabel);
                     let position1 = { x: currentNodeObj.x, y: currentNodeObj.y };
                     let position2 = { x: node.x, y: node.y };
 
-                    // Berechnet die Richtung und Distanz zwischen den Knoten
+                    /** Berechnet die Richtung und Distanz zwischen den Knoten */
                     const directionX = position2.x - position1.x;
                     const directionY = position2.y - position1.y;
                     const distance = Math.sqrt(directionX * directionX + directionY * directionY);
                     const unitDirectionX = directionX / distance;
                     const unitDirectionY = directionY / distance;
 
-                    // Berechnet die Positionen der Knotenränder
+                    /** Berechnet die Positionen der Knotenränder */
                     const borderPosition1 = {
                         x: position1.x + unitDirectionX * radius,
                         y: position1.y + unitDirectionY * radius
@@ -1768,7 +1774,7 @@
                         y: position2.y - unitDirectionY * radius
                     };
 
-                    // Zeichnet die Linie zwischen den Knoten
+                    /** Zeichnet die Linie zwischen den Knoten */
                     ctx.beginPath();
                     ctx.moveTo(borderPosition1.x, borderPosition1.y);
                     ctx.lineTo(borderPosition2.x, borderPosition2.y);
@@ -1779,12 +1785,12 @@
             }
         }
 
-        // Zeichnet den kürzesten Pfad vorgefertigt
+        /** Zeichnet den kürzesten Pfad vorgefertigt */
         function drawShortestPath() {
             if (currentPathIndex < shortestPathDraw.length) {
                 let path = shortestPathDraw[currentPathIndex];
 
-                // Kanten Knoten kürzester Pfades zeichnen
+                /** Kanten Knoten kürzester Pfades zeichnen */
                 for (let i = 0; i < path.length - 1; i++) {
                     const node1 = path[i].node;
                     const node2 = path[i + 1].node;
@@ -1797,7 +1803,7 @@
                     drawNeighbors(path.slice(-1)[0].node);
                 }
 
-                // Alle bisher grün markierten Knoten und den aktuellen Pfad zeichnen
+                /** Alle bisher grün markierten Knoten und den aktuellen Pfad zeichnen */
                 for (let i = 0; i <= currentPathIndex; i++) {
                     let currentPath = shortestPathDraw[i];
                     currentPath.forEach((pathNode, index) => {
@@ -1805,21 +1811,22 @@
                         ctx.beginPath();
                         ctx.arc(position.x, position.y, 32, 0, 2 * Math.PI, false);
 
+                        /* Helles Orange  */
                         if (i === currentPathIndex && index === currentPath.length - 1) {
-                            ctx.fillStyle = '#FFD580'; // Helles Orange für den letzten Knoten des aktuellen Pfades
+                            ctx.fillStyle = '#FFD580';
                         } else {
                             ctx.fillStyle = 'lightgreen';
                         }
 
-                        ctx.strokeStyle = 'red'; // Setze die Linienfarbe auf rot zurück
+                        ctx.strokeStyle = 'red';
                         ctx.fill();
                         ctx.lineWidth = 1;
                         ctx.stroke();
                         ctx.fillStyle = 'black';
-                        ctx.font = '22px Arial';
+                        ctx.font = '25px Arial';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText(`${pathNode.node} (${pathNode.distance})`, position.x, position.y);
+                        ctx.fillText(`${pathNode.node}(${pathNode.distance})`, position.x, position.y);
                     });
                 }
             }
@@ -1872,10 +1879,10 @@
                         ctx.lineWidth = 1;
                         ctx.stroke();
                         ctx.fillStyle = 'black';
-                        ctx.font = '22px Arial';
+                        ctx.font = '23px Arial';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText(`${pathNode.node} (${pathNode.distance})`, node.x, node.y);
+                        ctx.fillText(`${pathNode.node}(${pathNode.distance})`, node.x, node.y);
                     });
                 }
             }
@@ -1886,7 +1893,7 @@
             if (currentPathIndex < shortestPathDraw.length) {
                 let path = shortestPathDraw[currentPathIndex];
 
-                // Kanten Knoten kürzester Pfade
+                /** Kanten Knoten kürzester Pfade */
                 for (let i = 0; i < path.length - 1; i++) {
                     let node1Label = path[i].node;
                     let node2Label = path[i + 1].node;
@@ -1897,14 +1904,14 @@
                         let position1 = { x: node1.x, y: node1.y };
                         let position2 = { x: node2.x, y: node2.y };
 
-                        // Berechnet die Richtung und Distanz zwischen den Knoten
+                        /** Berechnet die Richtung und Distanz zwischen den Knoten */
                         const directionX = position2.x - position1.x;
                         const directionY = position2.y - position1.y;
                         const distance = Math.sqrt(directionX * directionX + directionY * directionY);
                         const unitDirectionX = directionX / distance;
                         const unitDirectionY = directionY / distance;
 
-                        // Berechnet die Positionen der Knotenränder
+                        /** Berechnet die Positionen der Knotenränder */
                         const borderPosition1 = {
                             x: position1.x + unitDirectionX * radius,
                             y: position1.y + unitDirectionY * radius
@@ -1914,7 +1921,7 @@
                             y: position2.y - unitDirectionY * radius
                         };
 
-                        // Zeichnet die Linie zwischen den Knoten
+                        /** kürzeste Kante mit Knotenrand beachten */
                         ctx.beginPath();
                         ctx.moveTo(borderPosition1.x, borderPosition1.y);
                         ctx.lineTo(borderPosition2.x, borderPosition2.y);
@@ -1924,7 +1931,7 @@
                     }
                 }
 
-                // Zeichne aktuellen Knoten und die Nachbarknoten
+                /** Zeichne aktuellen Knoten und die Nachbarknoten */
                 let currentNode = path[path.length - 1];
                 drawOwnNeighbors(currentNode);
 
@@ -1936,18 +1943,17 @@
                         ctx.arc(node.x, node.y, 30, 0, 2 * Math.PI, false);
 
                         if (i === currentPathIndex && index === currentPath.length - 1) {
-                            ctx.fillStyle = '#FFD580'; // Helles Orange für den letzten Knoten des aktuellen Pfades
+                            ctx.fillStyle = '#FFD580';
                         } else {
                             ctx.fillStyle = 'lightgreen';
                         }
 
-
-                        ctx.strokeStyle = 'red'; // Setze die Linienfarbe auf rot zurück
+                        ctx.strokeStyle = 'red';
                         ctx.fill();
                         ctx.lineWidth = 1;
                         ctx.stroke();
                         ctx.fillStyle = 'black';
-                        ctx.font = '21px Arial';
+                        ctx.font = '23px Arial';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(`${pathNode.node}(${pathNode.distance})`, node.x, node.y);
@@ -1957,7 +1963,7 @@
             }
         }
 
-        // Event-Listener für Screenshot Ausgabe
+        /** scrrenshots kürzeste Pfade durchschalten  */
         document.addEventListener('keydown', function (event) {
             if (algorithmCompleted) {
                 if (event.key === 'ArrowLeft') {
@@ -1983,12 +1989,14 @@
             screenshotImage.src = screenshots[currentScreenshotIndex];
         }
 
-        // Validierung der Benutzereingabe
+        /*** Validierung */
         function validateInput() {
             if (algorithmCompleted) {
                 return;
             }
+            /** Index der PQStates über Schlüssel Methode Object */
             let sortedKeys = Object.keys(pqStates);
+
             if (currentIndex >= sortedKeys.length) {
                 currentIndex = sortedKeys.indexOf('A');
             }
@@ -1996,11 +2004,13 @@
             let key = sortedKeys[currentIndex];
             let userInput, userEntries, expectedState;
 
+            /** Canvas1 Screens nach jedem validateInp*/
             let screenshot = canvas.toDataURL();
             screenshots.push(screenshot);
 
             userInput = document.getElementById('inputf').value.toUpperCase().replace(/\s+/g, '');
-            // Methoden zur Angleichung der Eingabe und des erwarteten Zustands
+
+            /** Eingabe User Formatierung */
             userEntries = userInput
                 .toLowerCase()
                 .replace(/\s+/g, '')
@@ -2012,6 +2022,7 @@
                 .map(element => `${element.node.toLowerCase()}${element.distance}`)
                 .sort()
                 .join(',');
+
             if (userEntries === expectedState) {
                 userInput = userInput.split(',')
                     .sort((a, b) => {
@@ -2022,8 +2033,8 @@
                             return a[0].localeCompare(b[0]);
                         }
                         return numA - numB;
-                    })
-                    .join(',');
+                    }).join(',');
+
 
                 let userInputArray = userInput.split(',');
                 let formattedUserInput = userInputArray.map(element => {
@@ -2032,15 +2043,16 @@
                     return `${letter}(${number})`;
                 }).join(',');
 
-                // Ausgabe des kürzesten Knotens
+                /** Ausgabe Knoten(Kosten) und PQ in Tabelle */
                 let shortestDistanceNode = userInputArray[0];
                 let letter = shortestDistanceNode.charAt(0);
                 let number = shortestDistanceNode.slice(1);
                 let output = `${letter}(${number})`;
+
                 document.getElementById('Element' + (currentIndex + 1)).value = output;
                 document.getElementById('priorityQueue' + (currentIndex + 1)).value = formattedUserInput;
 
-                // Identifiziere neue und aktualisierte Knoten aus pqStates
+                /** Ausgabe eingefuegte udn akt. Knoten canvas2 */
                 let previousState = currentIndex > 0 ? pqStates[sortedKeys[currentIndex - 1]] : [];
                 let currentState = pqStates[key];
 
@@ -2061,7 +2073,7 @@
                 currentIndex++;
                 currentPathIndex++;
 
-                // Überprüfe, ob es das letzte Element in der Priority Queue ist
+                /** letzte Element PQ Ausgabe Abbruchbed. */
                 if (currentIndex === sortedKeys.length - 1) {
                     drawMessage('Glückwunsch! Dies war der letzte Knoten in der Priority Queue und du hast\nalle kürzesten Distanzen bestimmt!\n\nDijkstras Algorithmus wurde erfolgreich gelöst! :-)', 'green');
                     algorithmCompleted = true;
@@ -2072,7 +2084,7 @@
                     currentScreenshotIndex = screenshots.length - 1;
 
                 } else {
-                    // Ausgabe der neuen und aktualisierten Knoten
+                    /** AUsgabe canvas2 neu eingef. und akt. Knoten */
                     if (newNodes.length > 0 || updatedNodes.length > 0) {
                         let message = '';
 
@@ -2095,12 +2107,12 @@
                     document.getElementById('inputf').value = nextInput;
                 }
 
-                // Überprüfen, ob Zeile21 Ausgabetabelle keinen leeren Wert hat und Z22 vorhanden
+                /** ROutine für zusätzliche Tabellenzeilen */
                 if (document.getElementById('Element21').value !== '' && !document.getElementById('Element22')) {
-                    // Tabelle mit ID "distanceTable" auswählen
+
                     let table = document.getElementById('distanceTable');
 
-                    // 5 neue Zeilen hinzufügen
+                    /** 5 zusätzliche Zeilen */
                     for (let i = 22; i <= 26; i++) {
                         let newRow = table.insertRow();
                         let cell1 = newRow.insertCell();
@@ -2125,19 +2137,18 @@
             }
 
             let remainingUses = 3 - showExpectedStateCount;
-            // Sortiert die Schlüssel der pqStates und gibt den erwarteten Zustand aus
+
             let sortedKeys = Object.keys(pqStates);
             if (currentIndex >= sortedKeys.length) {
                 currentIndex = sortedKeys.indexOf('A');
             }
-            // sortedk und currentIndex als Index für den erwarteten Zustand müssen passen!
+
             let key = sortedKeys[currentIndex];
             let expectedState = pqStates[key]
                 .map(element => `${element.node}${element.distance}`)
                 .sort()
                 .join(', ');
 
-            // Überprüfen, ob der aktuelle expectedState dem letzten angezeigten expectedState entspricht
             if (expectedState === lastExpectedState) {
                 const message = `Der erwartete Zustand wurde bereits angezeigt für Knoten ${key} mit:\n\n ${expectedState}!`;
                 drawMessage(message, 'red');
@@ -2152,12 +2163,36 @@
 
             drawMessage(message, 'red');
             showExpectedStateCount++;
-            lastExpectedState = expectedState; // Speichern des aktuell angezeigten expectedState
+            lastExpectedState = expectedState;
         }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////// Event listener der 3 Spielmodi
+        /*** Event listener der 3 Spielmodi */
 
-        // key logger Enter
+        /** Event UI im Webbrowser bewegen */
+        canvasContainer.addEventListener('mousedown', (e) => {
+            if (e.button === 1) { // Mittlere Maustaste
+                isDragging = true;
+                offsetX = e.clientX - canvasContainer.offsetLeft;
+                offsetY = e.clientY - canvasContainer.offsetTop;
+                canvasContainer.classList.add('dragging'); // Cursor ändern
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                canvasContainer.style.left = (e.clientX - offsetX) + 'px';
+                canvasContainer.style.top = (e.clientY - offsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                canvasContainer.classList.remove('dragging'); // Cursor zurücksetzen
+            }
+        });
+
+        /** Enter Taste */
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 if (document.getElementById('inputf') === document.activeElement) {
@@ -2166,11 +2201,12 @@
             }
         });
 
+        /*** Event Auswahl Knotenanzahl */
         document.getElementById('nodeCount').addEventListener('change', function () {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
 
-            // Leeren aller Eingabefelder
+            /** Leeren aller Eingabefelder */
             document.querySelectorAll('input[placeholder]').forEach(input => {
                 input.value = '';
             });
@@ -2178,8 +2214,7 @@
 
             isRndNodesActive = false;
             isOwnNodesNewActive = false;
-            algorithmCompleted = false;
-            // Nachrichten basierend auf der ausgewählten Knotenanzahl
+
             const messages = {
                 7: "Im Modus 'Vorgefertigte Graphen' sind Knoten und Kanten vorgegeben\nund nur die Distanz der Kanten werden zufällig zwischen 1 und 12 verteilt.\n\n Unter dem Eingabefeld siehst du von links nach rechts:\n\n- Dropdwon-Menü: Hier kannst du die Anzahl der dargestellten Knoten\n  festlegen. Natürlich steigt die Schwierigkeit je mehr Knoten/Kanten.\n\n- Hilf mir: Zeigt die erwartete Priority Queue für den nächsten Knoten an.\n\n- Hauptmenü: Setzt das Spiel komplett zurück!\n\n Viel Spass :-)",
                 8: "Mit 8 Knoten wird es schon etwas anspruchsvoller, aber keine Angst,\nDijkstras Algorithmus ist lösbar und du wirst es schaffen!\n\nViel Spass und gutes Gelingen :-)",
@@ -2197,7 +2232,7 @@
                 20: "Mit 20 Knoten ist es nun die größte Herausforderung, aber keine Angst,\nDijkstras Algorithmus ist lösbar und du wirst es schaffen!\n\nViel Spass und gutes Gelingen :-)\n\n P.S Auf der Github Seite https://github.com/BrowserGameDijkstra findet ihr\n\n den Quellcode der Applikation samt zusätzlicher Inhalte ;-) ",
             };
 
-            // Zeigt die entsprechende Nachricht an
+            /** Zeigt die entsprechende Nachricht an */
             drawMessage(messages[selectedNodeCount], "black");
 
             showExpectedStateCount = 0;
@@ -2208,41 +2243,43 @@
             let currentNode = 'A';
             const startNode = 'A';
 
-            // Neu Initialisierung des Graphen und Dijkstra
+
             updateGraph(selectedNodeCount);
             drawNode('A', 'lightgreen', 'A(0)');
             dijkstra(graph, 'A', selectedNodeCount);
 
+            algorithmCompleted = false;
         });
 
+        /*** Zufällige Graphen Event */
         document.getElementById('RndNodes').addEventListener('click', function () {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
 
-            // Leeren aller Eingabefelder
+            /** Leeren aller Eingabefelder */
             document.querySelectorAll('input[placeholder]').forEach(input => {
                 input.value = '';
             });
 
             isOwnNodesNewActive = false;
             isRndNodesActive = true;
-            algorithmCompleted = false;
+
             const textRndNode = "In diesem Modus wird ein zufälliger Graph mit 9 bis 25 Knoten erzeugt.\n\nWenn dir der Graph nicht gefällt, kannst du durch erneuten click auf das\nTab 'Zufällige Graphen' immer wieder neue, zufällige Graphen erzeugen!\n\nHilf mir/Hauptmenü: Wie gehabt Anzeige der nächsten erwarteten Eingabe\nbzw. zurück ins Hauptmenü.\n\n - Speichern des zufällig erzeugten Graphen! \n\n - Laden der Datei geht über den Modus 'Gestalte eigene Graphen'! \n\nViel Spass beim austüfteln der Priority Queue :-)\n\n";
             drawMessage(textRndNode, "black");
 
-            /*      Setup Routine zur Erstellung zufälliger Graphen      */
-            // Berechnen der Feldgröße
+            /**      Setup Routine zur Erstellung zufälliger Graphen      */
+
             const fieldWidth = canvas.width / 6;
             const fieldHeight = canvas.height / 6;
 
-            // Startknoten für den Algo
+            /* Startknoten für den Algo */
             const startNode = 'A';
 
-            // ID Start der Schnittpunkte + array Schnittp.
+            /* ID Start der Schnittpunkte + Array Schnittp. */
             let id = 0;
             let intersections = [];
 
-            //rücksetzen Validierung
+            /* rücksetzen Validierung */
             let selectedNode = null;
             let secondSelectedNode = null;
 
@@ -2254,7 +2291,7 @@
             weights = {};
             graph = {};
 
-            // Knoten-Positionen an den Schnittpunkten
+            /* Basis IDs */
             const baseNodes = [
                 { id: 22 },
                 { id: 23 },
@@ -2267,15 +2304,15 @@
             ];
 
             nodes = [...baseNodes];
-            // Verfügbare Buchstaben für die Beschriftung der Basis-Knoten
+            /* Basis Labels */
             let baseLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
-            // Zufällige Anzahl zusätzlicher Knoten 1 bis 17
+            /** Zufällige Anzahl zusätzlicher Knoten 1 bis 17 */
             let additionalNodeCount = Math.floor(Math.random() * 17) + 1;
             let additionalLabels = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y'];
             const selectedNodeCount = baseNodes.length + additionalNodeCount;
 
-            // Zeichnen der horizontalen und vertikalen Linien
+            /* Zeichnen der horizontalen und vertikalen Linien */
             for (let i = 0; i <= 6; i++) {
                 for (let j = 0; j <= 6; j++) {
 
@@ -2292,10 +2329,10 @@
                                         ctx.stroke();
                     */
 
-                    // Schnittpunkt-IDs nur bei tatsächlichen Schnittpunkten zeichnen
+                    /* Schnittpunkt-IDs nur bei tatsächlichen Schnittpunkten zeichnen */
                     if (i < 6 && j < 7) {
-                        {// zeichnen Schnittp Ids
-                            // ctx.fillText(id.toString(), j * fieldWidth + 10, i * fieldHeight + 15);
+                        {/* zeichnen Schnittp Ids */
+                            /* ctx.fillText(id.toString(), j * fieldWidth + 10, i * fieldHeight + 15); */
                             intersections.push({ x: j * fieldWidth, y: i * fieldHeight, id });
                             id++;
                         }
@@ -2303,7 +2340,7 @@
                 }
             }
 
-            // Zufällige Buchstaben den Basis-Knoten zuweisen
+            /** Label der Basis nodes zufällig auf Basis IDs verteilen*/
             for (let i = 0; i < baseNodes.length; i++) {
                 let randomIndex = Math.floor(Math.random() * baseLabels.length);
                 let label = baseLabels[randomIndex];
@@ -2318,10 +2355,10 @@
                 }
             }
 
-            // Entfernte Labels wieder zu baseLabels hinzufügen
+            /** Entfernte Labels wieder zu baseLabels hinzufügen */
             baseLabels.push(...removedLabels);
 
-            // Zufällige Anzahl zusätzlicher Knoten und deren Verteilung auf zugewiesene Schnittpunkte
+            /** Zufällige Anzahl zusätzlicher Knoten und deren Verteilung auf zugewiesene Schnittpunkte */
             if (additionalNodeCount <= 3) {
                 additionalNodeIds = [15, 18, 19].slice(0, additionalNodeCount);
             } else if (additionalNodeCount <= 6) {
@@ -2332,14 +2369,14 @@
                 additionalNodeIds = [15, 18, 19, 26, 29, 32, 33, 8, 9, 10, 11, 12, 36, 37, 38, 39, 40].slice(0, additionalNodeCount);
             }
 
-            // Methode Erstellung nodes array für zusätliche Knoten{ id: 22, label: 'F' }
+            /** Methode Erstellung nodes array für zusätliche Knoten{ id: 22, label: 'F' } */
             for (let i = 0; i < additionalNodeCount; i++) {
                 nodeId = additionalNodeIds[i];
                 label = additionalLabels[i];
                 nodes.push({ id: nodeId, label });
             }
 
-            // Zeichnen der Knoten
+            /** Zeichnen der Knoten */
             nodes.forEach(node => {
                 const intersection = intersections.find(inter => inter.id === node.id);
                 if (intersection) {
@@ -2347,7 +2384,7 @@
                 }
             });
 
-            // Buchstaben den zusätzlichen Knoten in alphabetischer Reihenfolge zuweisen
+            /** Buchstaben den zusätzlichen Knoten in alphabetischer Reihenfolge zuweisen */
             for (let i = 0; i < additionalNodeCount; i++) {
                 label = additionalLabels[i];
                 let intersection = intersections.find(inter => inter.id === additionalNodeIds[i]);
@@ -2356,7 +2393,7 @@
                 }
             }
 
-            // Füge die x- und y-Koordinaten zu den Knoten im nodes Array hinzu
+            /** Füge die x- und y-Koordinaten zu den Knoten im nodes Array hinzu */
             nodes.forEach(node => {
                 const intersection = intersections.find(inter => inter.id === node.id);
                 if (intersection) {
@@ -2368,23 +2405,24 @@
             function drawNode(position, color, label) {
                 ctx.beginPath();
                 ctx.strokeStyle = 'black';
-                ctx.arc(position.x, position.y, 28, 0, 2 * Math.PI, false);
+                ctx.arc(position.x, position.y, 30, 0, 2 * Math.PI, false);
                 ctx.fillStyle = label === 'A' ? 'lightgreen' : color;
                 ctx.fill();
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.fillStyle = 'black';
-                ctx.font = '24px Arial';
+                ctx.font = '25px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(label === 'A' ? 'A(0)' : label, position.x, position.y);
             }
 
-            // ermittlung Nachbarn für zufällige Knoten
+            /** Nachbarn für zufällige Knoten */
             function getNeighbors(id) {
-                //array nachbarknoten
+                /* array nachbarknoten */
                 let neighbors = [];
-                //array Richtungen mit Knoten
+
+                /* array Richtungen mit Knoten */
                 let directions = [
                     { dx: 0, dy: -1 }, // oben
                     { dx: 0, dy: 1 },  // unten
@@ -2394,23 +2432,23 @@
                     { dx: 1, dy: 1 } // unten rechts
                 ];
 
-                // finde Schnittpunkt für id mit Knoten
+                /** finde Schnittpunkt für id mit Knoten */
                 let pos = intersections.find(inter => inter.id === id);
 
-                // verknüpft Richtungen mit Nachbarn mit id 
+                /** verknüpft Richtungen mit Nachbarn mit id */
                 directions.forEach(dir => {
                     const neighbor = intersections.find(inter =>
                         inter.x === pos.x + dir.dx * fieldWidth &&
                         inter.y === pos.y + dir.dy * fieldHeight
                     );
 
-                    // wenn Nachbar gefunden nodes array und nicht schon im array, dann hinzufügen neighbor.id
+                    /** wenn Nachbar gefunden nodes array und nicht schon im array, dann hinzufügen neighbor.id */
                     if (neighbor && nodes.some(node => node.id === neighbor.id)) {
                         neighbors.push(neighbor.id);
                     }
                 });
 
-                // wenn kein Nachbar gefunden, dann alle Knoten durchgehen und Nachbarn hinzufügen
+                /** wenn kein Nachbar gefunden, dann alle Knoten durchgehen und Nachbarn hinzufügen */
                 if (neighbors.length === 0) {
                     nodes.forEach(node => {
                         if (node.id !== id && !neighbors.includes(node.id)) {
@@ -2425,11 +2463,12 @@
                 return neighbors;
             }
 
+            /** Kanten, Gewicht zeichnen + graph Erzeugung */
             function drawEdges() {
                 const radius = 28;
                 let visited = {};
 
-                // Anzahl entfernter Kanten basierend auf der Anzahl der Knoten
+                /** Anzahl entfernter Kanten basierend auf der Anzahl der Knoten */
                 if (nodes.length < 10) {
                     edgesToRemove = 4;
                 } else if (nodes.length < 15) {
@@ -2440,10 +2479,10 @@
                     edgesToRemove = 16;
                 }
 
-                // Schlüsselpaare der entfernten Kanten zB B-G,D-H, ...
+                /** Schlüsselpaare der entfernten Kanten zB B-G,D-H, ... */
                 let edgesToRemoveSet = new Set();
 
-                // neuer graph anhand NachbarId, Schlüsselzuweisung Knoten-Nachbarpaare und Distanz neu zuweisen
+                /** neuer graph anhand NachbarId, Schlüsselzuweisung Knoten-Nachbarpaare und Distanz neu zuweisen */
                 nodes.forEach(node => {
                     graph[node.label] = {};
                     let neighbors = getNeighbors(node.id);
@@ -2459,7 +2498,7 @@
                     });
                 });
 
-                // Ermittlung und Erstellung Labels der Nachbarn über iterieren von nodes
+                /** Ermittlung und Erstellung Labels der Nachbarn über iterieren von nodes */
                 nodes.forEach(node => {
                     let neighbors = getNeighbors(node.id);
                     let neighborLabels = neighbors.map(neighborId => {
@@ -2467,24 +2506,24 @@
                         return neighbor ? neighbor.label : '';
                     }).filter(label => label !== '');
 
-                    // Schleife die zufälligen Knoten aus nodes auswählt und Nachbarn ermittelt und entsprechend Anzahl löscht. array neighbors  > Zuweisung Schlüssel > graph > zufälliger Knoten > Label : wenn noch nicht edgesToRemoveSet, wird key hinzugefügt
+                    /** Schleife die zufälligen Knoten aus nodes auswählt und Nachbarn ermittelt und entsprechend Anzahl löscht. array neighbors  > Zuweisung Schlüssel > graph > zufälliger Knoten > Label : wenn noch nicht edgesToRemoveSet, wird key hinzugefügt */
                     while (edgesToRemoveSet.size < edgesToRemove) {
                         let randomNode = nodes[Math.floor(Math.random() * nodes.length)];
 
-                        // Überspringen Startknoten A
+                        /** Überspringen Startknoten A */
                         if (randomNode.label === 'A') {
                             continue;
                         }
 
                         let neighbors = Object.keys(graph[randomNode.label]);
 
-                        // Sicherstellen, dass das nodes-Array nur aus ganzen Zahlen besteht
+                        /** XY-Koord ganze Zahlen */
                         nodes.forEach(node => {
                             node.x = Math.round(node.x);
                             node.y = Math.round(node.y);
                         });
 
-                        // Überprüfe die Anzahl der Nachbarn und entferne Kanten entsprechend
+                        /** Überprüfe die Anzahl der Nachbarn und entferne Kanten entsprechend */
                         if (neighbors.length > 3) {
                             let randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
                             let key = randomNode.label < randomNeighbor ? `${randomNode.label}-${randomNeighbor}` : `${randomNeighbor}-${randomNode.label}`;
@@ -2504,7 +2543,7 @@
                                 edgesToRemoveSet.add(key);
                             }
                         } else if (neighbors.length === 0) {
-                            // Wenn ein Knoten mit 0 Nachbarn gefunden wird, gib das Ergebnis aus und beende die Schleife
+                            /** Wenn ein Knoten mit 0 Nachbarn gefunden wird, gib das Ergebnis aus und beende die Schleife */
                             break;
                         }
 
@@ -2517,7 +2556,7 @@
                             let pos1 = intersections.find(inter => inter.id === node.id);
                             let pos2 = intersections.find(inter => inter.id === neighborId);
 
-                            // Methode der horizontalen, vertikalen, diagonalen Kanten entsprechend angle/Position der Nachbarn
+                            /** Methode der horizontalen, vertikalen, diagonalen Kanten entsprechend angle/Position der Nachbarn */
                             if (pos1 && pos2) {
                                 const angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
                                 const startX = pos1.x + radius * Math.cos(angle);
@@ -2525,11 +2564,10 @@
                                 const endX = pos2.x - radius * Math.cos(angle);
                                 const endY = pos2.y - radius * Math.sin(angle);
 
-                                // Überprüfen, ob die Kante gelöscht werden soll
+                                /** Überprüfen, ob die Kante gelöscht werden soll */
                                 let key = node.label < neighbor.label ? `${node.label}-${neighbor.label}` : `${neighbor.label}-${node.label}`;
                                 if (!edgesToRemoveSet.has(key)) {
                                     if (!visited[node.label]) {
-                                        // Kante zeichnen
                                         ctx.beginPath();
                                         ctx.moveTo(startX, startY);
                                         ctx.lineTo(endX, endY);
@@ -2537,36 +2575,36 @@
                                         ctx.lineWidth = 1;
                                         ctx.stroke();
 
-                                        // Schlüssel Nachbarknotenpaare zuweisung Distanz
+                                        /** Schlüssel Nachbarknotenpaare zuweisung Distanz */
                                         if (!weights[key]) {
                                             weights[key] = Math.floor(Math.random() * 12) + 1;
                                         }
 
-                                        // Gewicht an der richtigen Position zeichnen
+                                        /** Gewicht an der richtigen Position zeichnen */
                                         const midX = (startX + endX) / 2;
                                         const midY = (startY + endY) / 2;
                                         const weightText = weights[key].toString();
 
-                                        ctx.font = '26px Arial';
+                                        ctx.font = '27px Arial';
                                         ctx.textBaseline = 'middle';
 
                                         if (Math.abs(startX - endX) > Math.abs(startY - endY)) {
-                                            // Horizontale Kante
+                                            /** Horizontale Kante */
                                             ctx.textAlign = 'center';
                                             ctx.fillText(weightText, midX, midY - 12); // Über der Kante
                                         } else {
-                                            // Vertikale Kante  
+                                            /** Vertikale Kante */
                                             ctx.textAlign = 'right';
                                             ctx.fillText(weightText, midX - 12, midY); // Links neben der Kante
                                         }
 
-                                        // Distanz zum graph-Objekt (Adjazenzliste) hinzufügen und per key abrufbar 
+                                        /** Distanz zum graph-Objekt (Adjazenzliste) hinzufügen und per key abrufbar */
                                         graph[node.label][neighbor.label] = weights[key];
                                         graph[neighbor.label][node.label] = weights[key];
 
                                     } else {
 
-                                        // Kante aus dem graph-Objekt entfernen
+                                        /** Kante aus dem graph-Objekt entfernen */
                                         delete graph[node.label][neighbor.label];
                                         delete graph[neighbor.label][node.label];
 
@@ -2578,7 +2616,7 @@
                 })
             }
 
-            /* Neu Initialisierung samt Aufruf NK*/
+            /** Neu Initialisierung samt Aufruf NK*/
             drawEdges();
             dijkstra(graph, 'A', selectedNodeCount)
 
@@ -2592,8 +2630,13 @@
                 };
                 drawRndNeighbors(currentNode, true);
             }
+
+            algorithmCompleted = false;
+
         });
 
+
+        /*** Event eigene Graphen */
 
         document.getElementById('OwnNodesNew').addEventListener('click', function () {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2608,12 +2651,14 @@
             isRndNodesActive = false;
             isOwnNodesNewActive = true;
             algorithmCompleted = false;
-            const textOwnNode = "In diesem Modus kannst du per click ins Feld Knoten A bis Z selber\nplatzieren. Hier noch einmal eine kurze Beschreibung der Buttons:\n\n- Knoten verbinden: Erstellt die Kanten zwischen den Knoten, indem immer\n  erst ein Startknoten, dann der Zielknoten Gecklickt wird.\n\n- Spiel beginnen: Wenn alle Knoten und Kanten wie gewünscht platziert\n  sind, startet der Button Spiel und Algorithmus.\n\n- Speichern / Laden: Selbst erstellte und zufällige Graphen\n\n können gespeichert und geladen werden im .json Format. \n\n Viel Spass beim Erstellen deines eigenen Graphen!";
+
+            document.getElementById('ownGraph').classList.remove('disabled');
+            document.getElementById('connectNodesButton').classList.remove('disabled');
+
+
+            const textOwnNode = "In diesem Modus kannst du per click ins Feld Knoten A bis Z selber\nplatzieren. Hier noch einmal eine kurze Beschreibung der Buttons:\n\n- Knoten verbinden: Erstellt die Kanten zwischen den Knoten, indem immer\n  erst ein Startknoten, dann der Zielknoten Gecklickt wird.\n\n- Spiel beginnen: Wenn alle Knoten und Kanten wie gewünscht platziert\n  sind, startet der Button Spiel und Algorithmus.\n\n- Speichern / Laden: Selbst erstellte und zufällige Graphen\n\n können gespeichert und geladen werden im .json Format.";
             drawMessage(textOwnNode, "black");
 
-            // canvas.addEventListener('Klick', selectNode);
-            document.getElementById('connectNodesButton').disabled = false;
-            document.getElementById('ownGraph').disabled = false;
             let selectedNode = null;
             let secondSelectedNode = null;
             nodes = [];
@@ -2625,47 +2670,61 @@
             currentPathIndex = 1;
             let currentNode = 'A';
 
-            document.getElementById('loadGraphButton').addEventListener('click', loadGraph);
+            /** verhindert mehrfaches aufrufen Laden Menue durch neu AUfruf Event eig. Graphen */
+            if (!isLoadGraphInitialized) {
+                document.getElementById('loadGraphButton').addEventListener('click', loadGraph);
+                isLoadGraphInitialized = true;
+            }
+
 
             function loadGraph() {
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = '.json';
+
                 input.onchange = function () {
                     const file = input.files[0];
                     const reader = new FileReader();
+
+                    nodes.length = 0;
+                    weights = {};
+                    showExpectedStateCount = 0;
+                    currentIndex = 0;
+                    currentPathIndex = 1;
+                    graph = {};
+
                     reader.onload = function (e) {
                         startTimer();
                         const graphData = JSON.parse(e.target.result);
+
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
 
-                        // Leeren aller Eingabefelder
                         document.querySelectorAll('input[placeholder]').forEach(input => {
                             input.value = '';
                         });
 
-                        nodes.length = 0;
-                        weights = {};
-                        showExpectedStateCount = 0;
-                        currentIndex = 0;
-                        currentPathIndex = 1;
-
-                        // Rekosntruktion des Graphen aus den geladenen Daten
+                        /** Rekonstruktion des Graphen aus den geladenen Daten */
                         graphData.nodes.forEach(node => {
                             nodes.push({ x: node.x, y: node.y, label: node.label });
                             drawOwnNode(node.x, node.y, node.label, 'white');
                         });
 
                         graphData.edges.forEach(edge => {
-                            const [nodeLabel1, nodeLabel2] = edge.nodes;
+                            const nodeLabel1 = edge.nodes[0];
+                            const nodeLabel2 = edge.nodes[1];
                             weights[[nodeLabel1, nodeLabel2].sort().join('-')] = edge.weight;
                             drawOwnConnection(nodeLabel1, nodeLabel2, 'black', edge.weight);
+
+                            /** Aktualisiere das graph-Objekt */
+                            if (!graph[nodeLabel1]) graph[nodeLabel1] = {};
+                            if (!graph[nodeLabel2]) graph[nodeLabel2] = {};
+                            graph[nodeLabel1][nodeLabel2] = edge.weight;
+                            graph[nodeLabel2][nodeLabel1] = edge.weight;
                         });
 
-
                         const selectedNodeCount = nodes.length;
-                        const graphName = file.name.split('.')[0]; // Extrahieren des Dateinamens
+                        const graphName = file.name.split('.')[0];
                         const textLoadGraph = ` Graph   * ${graphName} *     erfolgreich geladen!\n\n Du kannst loslegen!\n\n Viel Spass! :-)`;
                         canvas.style.cursor = 'pointer';
 
@@ -2675,27 +2734,41 @@
 
                         drawMessage(textLoadGraph, "black");
 
-                        nodes.forEach(node => {
-                            drawOwnNode(node.x, node.y, node.label === 'A' ? 'A(0)' : node.label, node.label === 'A' ? 'lightgreen' : 'white');
-                        });
-
+                        /** Routine zur NK Bestimmung nach Laden eines Graphen */
+                        const startNode = nodes.find(n => n.label === 'A');
+                        if (startNode) {
+                            if (isRndNodesActive) {
+                                drawRndNeighbors({ node: 'A', x: startNode.x, y: startNode.y }, true);
+                            } else if (isOwnNodesNewActive) {
+                                drawOwnNeighbors({ node: 'A' });
+                            }
+                        }
                         dijkstra(graph, 'A', selectedNodeCount);
 
+                        nodes.forEach(node => {
+                            if (node.label === 'A') {
+                                drawOwnNode(node.x, node.y, 'A(0)', 'lightgreen');
+                            }
+                        });
+
+                        document.getElementById('ownGraph').classList.add('disabled');
+                        document.getElementById('connectNodesButton').classList.add('disabled');
+
+                        canvas.removeEventListener('click', selectNode);
+                        canvas.removeEventListener('click', handleCanvasClick);
+
+                        algorithmCompleted = false;
                     };
                     reader.readAsText(file);
                 };
                 input.click();
             }
 
-            let algorithmExecuted = false;
+            /*** Event Spiel beginnen eig. gRaphen */
 
             document.getElementById('ownGraph').addEventListener('click', function () {
-                if (algorithmExecuted) {
-                    drawMessage("Der Algorithmus wurde bereits ausgeführt!\nBitte erstelle einen neuen eigenen Graphen!", 'red');
-                    return;
-                }
-                const selectedNodeCount = userNodeCount;
 
+                const selectedNodeCount = userNodeCount;
 
                 const textOwnGraph = "Ok, der Algorithmus hat für den von dir erstellten Graphen die kürzesten\nDistanzen zum Startknoten A bestimmt und du kannst nun loslegen!\n\nViel Spass! :-)";
                 canvas.style.cursor = 'pointer';
@@ -2703,7 +2776,7 @@
                     input.value = '';
                 });
 
-                // Überprüfen, ob mindestens zwei Knoten verbunden sind und Startknoten A verbunden ist
+                /** Routine ob 2 Knoten bereits gesetzt */
                 let connectedNodes = 0;
                 let startNodeConnected = false;
                 nodes.forEach(node => {
@@ -2727,12 +2800,13 @@
                 });
 
                 dijkstra(graph, 'A', selectedNodeCount);
-                algorithmExecuted = true;
-                // Deaktiviere den "Knoten verbinden" Button
-                document.getElementById('connectNodesButton').disabled = true;
+                drawOwnNeighbors({ node: 'A' });
+
+                /** Deaktiviert die Bedienelemente für eigene Graphen */
+                this.classList.add('disabled');
+                document.getElementById('connectNodesButton').classList.add('disabled');
                 canvas.removeEventListener('click', selectNode);
                 canvas.removeEventListener('click', handleCanvasClick);
-
             });
 
             function drawOwnNode(x, y, label, color) {
@@ -2750,15 +2824,18 @@
                 ctx.fillText(label, x, y);
             }
 
+            /** Event Listener Knoten in canvas */
             canvas.addEventListener('click', handleCanvasClick);
 
             function handleCanvasClick(event) {
                 ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
                 if (currentNode > 'Z') {
                     drawMessage("Maximale Anzahl an Knoten erreicht", "red");
                     return;
                 }
-                // Sicherstellen, dass das nodes-Array nur aus ganzen Zahlen besteht
+
+                /** nodes-Array nur aus ganzen Zahlen besteht */
                 nodes.forEach(node => {
                     node.x = Math.round(node.x);
                     node.y = Math.round(node.y);
@@ -2794,7 +2871,7 @@
                 currentNode = String.fromCharCode(currentNode.charCodeAt(0) + 1);
             }
 
-            // Eventlistener Kanten verbinden  
+            /** Eventlistener Kanten verbinden */
             document.getElementById('connectNodesButton').addEventListener('click', function () {
                 canvas.removeEventListener('click', handleCanvasClick);
                 canvas.removeEventListener('click', selectNode);
@@ -2805,7 +2882,8 @@
             });
 
             function selectNode(event) {
-                // Sicherstellen, dass das nodes-Array nur aus ganzen Zahlen besteht
+
+                /** nodes-Array nur aus ganzen Zahlen besteht */
                 nodes.forEach(node => {
                     node.x = Math.round(node.x);
                     node.y = Math.round(node.y);
@@ -2836,12 +2914,13 @@
             function drawOwnConnection(nodeLabel1, nodeLabel2, color) {
                 key = [nodeLabel1, nodeLabel2].sort().join('-');
 
-                // Überprüft, ob das Gewicht bereits im weights-Objekt vorhanden ist
+                /** Überprüft, ob das Gewicht bereits im weights-Objekt vorhanden ist */
                 if (!weights[key]) {
-                    // Prompt für die Eingabe des Kantengewichts durch den Benutzer
+
+                    /** Prompt für die Eingabe des Kantengewichts durch den Benutzer */
                     let weight = parseInt(prompt(`Bitte gib einen Wert 1-15 für die Kante ${nodeLabel1}-${nodeLabel2} ein:`, ''));
 
-                    // Überprüft, ob das eingegebene Gewicht gültig ist
+                    /** Überprüft, ob das eingegebene Gewicht gültig ist */
                     while (isNaN(weight) || weight < 1 || weight > 15) {
                         weight = parseInt(prompt(`Ungültiger Wert. Bitte nur einen Wert zwischen 1 und 15 fuer ${nodeLabel1}-${nodeLabel2}:`, ''));
                     }
@@ -2850,7 +2929,7 @@
 
                 let weight = weights[key];
 
-                // Aktualisiert das graph-Array mit den Nachbarknoten und Gewichten
+                /** Aktualisiert das graph-Array mit den Nachbarknoten und Gewichten */
                 if (!graph[nodeLabel1]) {
                     graph[nodeLabel1] = {};
                 }
@@ -2861,7 +2940,7 @@
                 graph[nodeLabel1][nodeLabel2] = weight;
                 graph[nodeLabel2][nodeLabel1] = weight;
 
-                // Findet die Knotenobjekte basierend auf den Labels
+                /** Findet die Knotenobjekte basierend auf den Labels */
                 let node1 = nodes.find(node => node.label === nodeLabel1);
                 let node2 = nodes.find(node => node.label === nodeLabel2);
 
@@ -2870,14 +2949,14 @@
                 let position1 = { x: node1.x, y: node1.y };
                 let position2 = { x: node2.x, y: node2.y };
 
-                // Berechnet die Richtung und Distanz zwischen den Knoten
+                /** Berechnet die Richtung und Distanz zwischen den Knoten */
                 const directionX = position2.x - position1.x;
                 const directionY = position2.y - position1.y;
                 const distance = Math.sqrt(directionX * directionX + directionY * directionY);
                 const unitDirectionX = directionX / distance;
                 const unitDirectionY = directionY / distance;
 
-                // Berechnet die Positionen der Knotenränder
+                /** Berechnet die Positionen der Knotenränder */
                 const radius = 30;
                 const borderPosition1 = {
                     x: position1.x + unitDirectionX * radius,
@@ -2888,7 +2967,7 @@
                     y: position2.y - unitDirectionY * radius
                 };
 
-                // Zeichnet die Linie zwischen den Knoten
+                /** Kanten zeichnen */
                 ctx.beginPath();
                 ctx.moveTo(borderPosition1.x, borderPosition1.y);
                 ctx.lineTo(borderPosition2.x, borderPosition2.y);
@@ -2896,32 +2975,34 @@
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // Beschriftung der Kante mit dem Gewicht
+                /** Beschriftung der Kante mit dem Gewicht */
                 const midPointX = (borderPosition1.x + borderPosition2.x) / 2;
                 const midPointY = (borderPosition1.y + borderPosition2.y) / 2;
 
-                // Berechnet die Versetzung basierend auf der Orientierung der Kante
+                /** Berechnet die Versetzung basierend auf der Orientierung der Kante */
                 const offset = 16;  // Die Höhe des Versatzes
                 let labelX = midPointX;
                 let labelY = midPointY;
 
                 if (Math.abs(directionX) > Math.abs(directionY)) {
-                    // Eher horizontale Kante
+
+                    /* Eher horizontale Kante */
                     labelY -= offset;
                 } else {
-                    // Eher vertikale Kante
+                    /* Eher vertikale Kante */
                     labelX -= offset;
                 }
 
+                ctx.strokeStyle = 'black';
                 ctx.fillStyle = 'black';
-                ctx.font = '25px Arial';
+                ctx.font = '27px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(weight.toString(), labelX, labelY);
             }
         })
 
-        // neue Distanz der Kanten für vorgefertigte Graphen
+        /*** Neu Initialisieren Vorgefertigte Graphen  */
         function resetGraph() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
@@ -2931,16 +3012,19 @@
             isRndNodesActive = false;
             isOwnNodesNewActive = false;
             algorithmCompleted = false;
-            // Leeren aller Eingabefelder
+
             document.querySelectorAll('input[placeholder]').forEach(input => {
                 input.value = '';
             });
+
             const textReset = "Im Modus 'Vorgefertigte Graphen' sind Knoten und Kanten vorgegeben\nund nur die Distanz der Kanten werden zufällig zwischen 1 und 12 verteilt.\n\n Unter dem Eingabefeld siehst du von links nach rechts: \n\n - Dropdwon - Menü: Hier kannst du die Anzahl der dargestellten Knoten\n  festlegen.Natürlich steigt die Schwierigkeit je mehr Knoten / Kanten.\n\n - Hilf mir: Zeigt die erwartete Priority Queue für den nächsten Knoten an.\n\n - Hauptmenü: Setzt das Spiel komplett zurück!\n\n Viel Spass: -)";
             drawMessage(textReset, "black");
+
             nodes = [];
             weights = {};
             graph = {};
             pqStates = {};
+            nearNodes = [];
             let userNodeCount = 0;
             showExpectedStateCount = 0;
             currentIndex = 0;
@@ -2948,9 +3032,17 @@
 
             updateGraph(selectedNodeCount);
             drawNode('A', 'lightgreen', 'A(0)');
+
+            /** Sicherstellen, dass graph[node] für jeden Knoten existiert */
+            Object.keys(graph).forEach(node => {
+                if (!graph[node]) graph[node] = {};
+            });
+
             dijkstra(graph, 'A', selectedNodeCount);
+
         }
 
+        /** Hauptmenue Event */
         function reloadPage() {
             location.reload();
         }
